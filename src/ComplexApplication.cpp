@@ -99,8 +99,10 @@ bool ComplexApplication::update(float deltaTime) {
 	}
 
 	//add a sphere
-	Gizmos::addSphere(vec3(0, 0, 0), 3, 8, 8, vec4(0.7, 0.4, 0.8, 1));
-	Gizmos::addRing(vec3(0, 3, 0), 3, 4, 8, vec4(0.4, 0.7, 0.8, 1));
+	//Gizmos::addSphere(vec3(0, 0, 0), 3, 8, 8, vec4(0.7, 0.4, 0.8, 1));
+	//Gizmos::addRing(vec3(0, 3, 0), 3, 4, 8, vec4(0.4, 0.7, 0.8, 1));
+
+	Gizmos::addRectangularPrism(glm::vec3(0.f, 0.f, 0.f), 3.f, 3.f, 3.f);
 
 	// return true, else the application closes
 	return true;

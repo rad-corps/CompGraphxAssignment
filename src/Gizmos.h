@@ -30,6 +30,9 @@ public:
 	// Adds a triangle.
 	static void		addTri(const glm::vec3& a_rv0, const glm::vec3& a_rv1, const glm::vec3& a_rv2, const glm::vec4& a_colour);
 
+	//Adds a rectangular prism
+	static void		addRectangularPrism(const glm::vec3& startingPoint, const float& w_, const float& h_, const float& d_);
+
 	// Adds 3 unit-length lines (red,green,blue) representing the 3 axis of a transform, 
 	// at the transform's translation. Optional scale available.
 	static void		addTransform(const glm::mat4& a_transform, float a_fScale = 1.0f);

@@ -140,6 +140,7 @@ Gizmos::Gizmos(unsigned int a_maxLines, unsigned int a_maxTris,
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(GizmoVertex), 0);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, sizeof(GizmoVertex), ((char*)0) + 16);
 
+	//The vertex array tracks the glBindBuffer, glEnableVertexAttribArray and glVertexAttribPointer state of the bound buffer m_triVBO
 	glGenVertexArrays(1, &m_triVAO);
 	glBindVertexArray(m_triVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_triVBO);
@@ -560,6 +561,50 @@ void Gizmos::addArcRing(const glm::vec3& a_center, float a_rotation,
 	}
 }
 
+//Adds a rectangular prism
+void Gizmos::addRectangularPrism(const glm::vec3& startingPoint, const float& w_, const float& h_, const float& d_)
+{
+	//create an arbitrary colour (white)
+	glm::vec4 colour(1.0f, 1.0f, 1.0f, 1.0f);
+	//glm::vec4 colour(0.7, 0.4, 0.8, 1);
+
+	//create the 8 points
+	glm::vec3 points[8];
+	points[0] = startingPoint + glm::vec3(0, 0, 0);
+	points[1] = startingPoint + glm::vec3(w_, 0, 0);
+	points[2] = startingPoint + glm::vec3(w_, h_, 0);
+	points[3] = startingPoint + glm::vec3(0, h_, 0);
+	points[4] = startingPoint + glm::vec3(0, 0, d_);
+	points[5] = startingPoint + glm::vec3(w_, 0, d_);
+	points[6] = startingPoint + glm::vec3(w_, h_, d_);
+	points[7] = startingPoint + glm::vec3(0, h_, d_);
+
+
+	//create triangle 1
+	addTri(points[0], points[2], points[1], colour);
+	addTri(points[2], points[0], points[3], colour);
+	addTri(points[3], points[0], points[4], colour);
+	addTri(points[3], points[4], points[7], colour);
+
+	addTri(points[7], points[6], points[2], colour);
+	addTri(points[2], points[3], points[7], colour);
+	
+	addTri(points[1], points[2], points[6], colour);
+	addTri(points[6], points[5], points[1], colour);
+
+	addTri(points[4], points[6], points[7], colour);
+	addTri(points[4], points[5], points[6], colour);
+
+	addTri(points[1], points[5], points[4], colour);
+	addTri(points[4], points[0], points[1], colour);
+	
+	//addTri(startingPoint, startingPoint + points[1], startingPoint + points[2], colour);
+	//addTri(startingPoint, startingPoint + points[1], startingPoint + points[2], colour);
+
+	
+	//create triangle 2	
+}
+
 void Gizmos::addSphere(const glm::vec3& a_center, float a_radius, int a_rows, int a_columns, const glm::vec4& a_fillColour, 
 								const glm::mat4* a_transform /*= nullptr*/, float a_longMin /*= 0.f*/, float a_longMax /*= 360*/, 
 								float a_latMin /*= -90*/, float a_latMax /*= 90*/) {
@@ -925,7 +970,8 @@ void Gizmos::draw(const glm::mat4& a_projectionView, float time_) {
 			glBindBuffer(GL_ARRAY_BUFFER, sm_singleton->m_triVBO);
 			glBufferSubData(GL_ARRAY_BUFFER, 0, sm_singleton->m_triCount * sizeof(GizmoTri), sm_singleton->m_tris);
 
-			glBindVertexArray(sm_singleton->m_triVAO);
+			//by binding this vertex array object, we dont have to set our vertex attrib pointers each time
+			glBindVertexArray(sm_singleton->m_triVAO);			
 			glDrawArrays(GL_TRIANGLES, 0, sm_singleton->m_triCount * 3);
 		}
 
