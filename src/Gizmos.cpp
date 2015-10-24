@@ -4,8 +4,10 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include <iostream>
+#include "simplexnoise.h"
 
 Gizmos* Gizmos::sm_singleton = nullptr;
+bool Gizmos::displayedData = false;
 
 Gizmos::Gizmos(unsigned int a_maxLines, unsigned int a_maxTris,
 			   unsigned int a_max2DLines, unsigned int a_max2DTris)
@@ -559,6 +561,39 @@ void Gizmos::addArcRing(const glm::vec3& a_center, float a_rotation,
 		addLine(a_center + v1inner, a_center + v1outer, vSolid, vSolid);
 		addLine(a_center + v2inner, a_center + v2outer, vSolid, vSolid);
 	}
+}
+
+void Gizmos::addTerrain()
+{
+	
+	//
+	const int SIZE = 100;
+	//const float TRI_SPACING = 1.0f;
+//	glm::vec4 colour(1.0f, 1.0f, 1.0f, 1.0f);
+
+	glm::vec3 points[SIZE][SIZE];
+	glm::vec4 colours[SIZE][SIZE];
+	for (int z = 0; z < SIZE; ++z)
+	{
+		for (int x = 0; x < SIZE; ++x)
+		{
+			points[x][z] = glm::vec3(x, octave_noise_2d(1.f, 0.5f, 2.0f, x * 0.05, z * 0.05), z);
+			//gen colour based on Y height
+			colours[x][z] = glm::vec4(points[x][z].y * 0.2, points[x][z].y, points[x][z].y * 0.2, 1.0f);
+		}		
+	}
+	//displayedData = true;
+
+	//create the triangles from the points
+	for (int z = 0; z < SIZE-1; ++z)
+	{
+		for (int x = 0; x < SIZE-1; ++x)
+		{
+			addTri(points[x][z], points[x][z+1], points[x+1][z+1], colours[x][z]);
+			addTri(points[x][z], points[x + 1][z + 1], points[x + 1][z], colours[x][z]);
+		}
+	}
+	
 }
 
 //Adds a rectangular prism

@@ -33,6 +33,8 @@ public:
 	//Adds a rectangular prism
 	static void		addRectangularPrism(const glm::vec3& startingPoint, const float& w_, const float& h_, const float& d_);
 
+	static void		addTerrain();
+
 	// Adds 3 unit-length lines (red,green,blue) representing the 3 axis of a transform, 
 	// at the transform's translation. Optional scale available.
 	static void		addTransform(const glm::mat4& a_transform, float a_fScale = 1.0f);
@@ -151,4 +153,6 @@ private:
 	unsigned int 	m_2DtriVBO;
 
 	static Gizmos*	sm_singleton;
+
+	static bool displayedData;
 };
