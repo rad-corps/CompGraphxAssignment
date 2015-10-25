@@ -73,8 +73,8 @@ bool ComplexApplication::startup() {
 	//m_clearColour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	terrainSize = 100;
 	octaves = 1.0f;
-	smoothness = 0.03f;
-	scale2 = 2.0f;
+//	smoothness = 0.03f;
+	scale2 = 0.05f;
 	persistance = 0.5f;
 	height = 4.0f;
 	bottomRed = 26;
@@ -83,7 +83,7 @@ bool ComplexApplication::startup() {
 	topRed = 91;
 	topGreen = 135;
 	topBlue = 10;
-	guiBar = TwNewBar("Control");	TwAddVarRW(guiBar, "size", TW_TYPE_INT32, &terrainSize, " min=0 max=200 label='Terrain Size'");	TwAddVarRW(guiBar, "octave", TW_TYPE_FLOAT, &octaves, " min=0 max=10 label='Perlin Octaves'");	TwAddVarRW(guiBar, "scale", TW_TYPE_FLOAT, &smoothness, " min=0.01 max=0.1 label='Smoothness'");	TwAddVarRW(guiBar, "scale2", TW_TYPE_FLOAT, &scale2, " min=0.01 max=10.0 label='Scale'");	TwAddVarRW(guiBar, "persistance", TW_TYPE_FLOAT, &persistance, " min=0.01 max=100.0 label='Persistance'");	TwAddVarRW(guiBar, "height", TW_TYPE_FLOAT, &height, " min=0.0 max=10 label='Height'");	TwAddVarRW(guiBar, "bottomRed", TW_TYPE_INT32, &bottomRed, " min=0 max=255 label='Bottom Red'");	TwAddVarRW(guiBar, "bottomGreen", TW_TYPE_INT32, &bottomGreen, " min=0 max=255 label='Bottom Green'");	TwAddVarRW(guiBar, "bottomBlue", TW_TYPE_INT32, &bottomBlue, " min=0 max=255 label='Bottom Blue'");	TwAddVarRW(guiBar, "topRed", TW_TYPE_INT32, &topRed, " min=0 max=255 label='Top Red'");	TwAddVarRW(guiBar, "topGreen", TW_TYPE_INT32, &topGreen, " min=0 max=255 label='Top Green'");	TwAddVarRW(guiBar, "topBlue", TW_TYPE_INT32, &topBlue, " min=0 max=255 label='Top Blue'");	glfwSetMouseButtonCallback(m_window, OnMouseButton);
+	guiBar = TwNewBar("Control");	TwAddVarRW(guiBar, "size", TW_TYPE_INT32, &terrainSize, " min=0 max=200 label='Terrain Size'");	TwAddVarRW(guiBar, "octave", TW_TYPE_FLOAT, &octaves, " min=0 max=10 label='Perlin Octaves'");	TwAddVarRW(guiBar, "scale", TW_TYPE_FLOAT, &scale2, " min=0.001 max=1.0 label='Scale'");	TwAddVarRW(guiBar, "persistance", TW_TYPE_FLOAT, &persistance, " min=0.0 max=1.0 label='Persistance'");	TwAddVarRW(guiBar, "height", TW_TYPE_FLOAT, &height, " min=0.0 max=10 label='Height'");	TwAddVarRW(guiBar, "bottomRed", TW_TYPE_INT32, &bottomRed, " min=0 max=255 label='Bottom Red'");	TwAddVarRW(guiBar, "bottomGreen", TW_TYPE_INT32, &bottomGreen, " min=0 max=255 label='Bottom Green'");	TwAddVarRW(guiBar, "bottomBlue", TW_TYPE_INT32, &bottomBlue, " min=0 max=255 label='Bottom Blue'");	TwAddVarRW(guiBar, "topRed", TW_TYPE_INT32, &topRed, " min=0 max=255 label='Top Red'");	TwAddVarRW(guiBar, "topGreen", TW_TYPE_INT32, &topGreen, " min=0 max=255 label='Top Green'");	TwAddVarRW(guiBar, "topBlue", TW_TYPE_INT32, &topBlue, " min=0 max=255 label='Top Blue'");	glfwSetMouseButtonCallback(m_window, OnMouseButton);
 	glfwSetCursorPosCallback(m_window, OnMousePosition);
 	glfwSetScrollCallback(m_window, OnMouseScroll);
 	glfwSetKeyCallback(m_window, OnKey);
@@ -161,7 +161,7 @@ bool ComplexApplication::update(float deltaTime) {
 	RGBFloats[4] = (float)topGreen / 255.f;
 	RGBFloats[5] = (float)topBlue / 255.f;
 
-	Gizmos::addTerrain(terrainSize, octaves, smoothness, height, RGBFloats, scale2, persistance);
+	Gizmos::addTerrain(terrainSize, octaves, height, RGBFloats, scale2, persistance);
 
 	// return true, else the application closes
 	return true;

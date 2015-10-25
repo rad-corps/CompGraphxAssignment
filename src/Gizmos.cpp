@@ -577,7 +577,7 @@ void Gizmos::addArcRing(const glm::vec3& a_center, float a_rotation,
 	}
 }
 
-void Gizmos::addTerrain(const int& size_, const float& octaves_, const float& scale_, const float& height_, float* RGBFloats_, const float& scale2_, const float& persistance_)
+void Gizmos::addTerrain(const int& size_, const float& octaves_, const float& height_, float* RGBFloats_, const float& scale2_, const float& persistance_)
 {
 	for (int z = 0; z < size_; ++z)
 	{
@@ -586,7 +586,7 @@ void Gizmos::addTerrain(const int& size_, const float& octaves_, const float& sc
 			glm::vec4 colourBottom(RGBFloats_[0], RGBFloats_[1], RGBFloats_[2], 1.0f);
 			glm::vec4 colourTop(RGBFloats_[3], RGBFloats_[4], RGBFloats_[5], 1.0f);
 			
-			float temp_height = octave_noise_2d(octaves_, persistance_, scale2_, x * scale_, z * scale_);
+			float temp_height = octave_noise_2d(octaves_, persistance_, scale2_, x, z);
 			//std::cout << temp_height << std::endl;
 			points[x][z] = glm::vec3(x, height_ * temp_height, z);
 			//temp_height += 1.0f;

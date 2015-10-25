@@ -32,7 +32,7 @@ private:
 	TwBar* guiBar;
 	int terrainSize;
 	float octaves;
-	float smoothness;
+	//float smoothness;
 	float height;
 
 	int bottomRed;
