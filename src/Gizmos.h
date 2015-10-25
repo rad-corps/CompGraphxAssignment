@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/fwd.hpp>
+#include <vector>
 
 class Gizmos {
 public:
@@ -33,7 +34,7 @@ public:
 	//Adds a rectangular prism
 	static void		addRectangularPrism(const glm::vec3& startingPoint, const float& w_, const float& h_, const float& d_);
 
-	static void		addTerrain();
+	static void		addTerrain(const int& size_, const float& octaves_, const float& scale_, const float& height_, float* RGBFloats_, const float& scale2_, const float& persistance_);
 
 	// Adds 3 unit-length lines (red,green,blue) representing the 3 axis of a transform, 
 	// at the transform's translation. Optional scale available.
@@ -155,4 +156,7 @@ private:
 	static Gizmos*	sm_singleton;
 
 	static bool displayedData;
+
+	static std::vector<std::vector<glm::vec3>> points;
+	static std::vector<std::vector<glm::vec4>> colours;
 };

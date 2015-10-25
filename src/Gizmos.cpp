@@ -5,9 +5,13 @@
 #include <glm/ext.hpp>
 #include <iostream>
 #include "simplexnoise.h"
+#include <vector>
 
 Gizmos* Gizmos::sm_singleton = nullptr;
 bool Gizmos::displayedData = false;
+
+std::vector<std::vector<glm::vec3>> Gizmos::points;
+std::vector<std::vector<glm::vec4>> Gizmos::colours;
 
 Gizmos::Gizmos(unsigned int a_maxLines, unsigned int a_maxTris,
 			   unsigned int a_max2DLines, unsigned int a_max2DTris)
@@ -25,6 +29,16 @@ Gizmos::Gizmos(unsigned int a_maxLines, unsigned int a_maxTris,
 	m_max2DTris(a_max2DTris),
 	m_2DtriCount(0),
 	m_2Dtris(new GizmoTri[a_max2DTris]) {
+	
+	//preallocate vector memory
+	points.resize(200);
+	colours.resize(200);
+	for (int i = 0; i < 200; ++i)
+	{
+		points[i].resize(200);
+		colours[i].resize(200);
+	}
+	
 	// create shaders
 	const char* vsSource = "#version 150\n \
 					 in vec4 Position; \
@@ -563,37 +577,36 @@ void Gizmos::addArcRing(const glm::vec3& a_center, float a_rotation,
 	}
 }
 
-void Gizmos::addTerrain()
+void Gizmos::addTerrain(const int& size_, const float& octaves_, const float& scale_, const float& height_, float* RGBFloats_, const float& scale2_, const float& persistance_)
 {
-	
-	//
-	const int SIZE = 100;
-	//const float TRI_SPACING = 1.0f;
-//	glm::vec4 colour(1.0f, 1.0f, 1.0f, 1.0f);
-
-	glm::vec3 points[SIZE][SIZE];
-	glm::vec4 colours[SIZE][SIZE];
-	for (int z = 0; z < SIZE; ++z)
+	for (int z = 0; z < size_; ++z)
 	{
-		for (int x = 0; x < SIZE; ++x)
+		for (int x = 0; x < size_; ++x)
 		{
-			points[x][z] = glm::vec3(x, octave_noise_2d(1.f, 0.5f, 2.0f, x * 0.05, z * 0.05), z);
+			glm::vec4 colourBottom(RGBFloats_[0], RGBFloats_[1], RGBFloats_[2], 1.0f);
+			glm::vec4 colourTop(RGBFloats_[3], RGBFloats_[4], RGBFloats_[5], 1.0f);
+			
+			float temp_height = octave_noise_2d(octaves_, persistance_, scale2_, x * scale_, z * scale_);
+			//std::cout << temp_height << std::endl;
+			points[x][z] = glm::vec3(x, height_ * temp_height, z);
+			//temp_height += 1.0f;
+
+			glm::vec4 newcolour = glm::lerp(colourBottom, colourTop, temp_height);
 			//gen colour based on Y height
-			colours[x][z] = glm::vec4(points[x][z].y * 0.2, points[x][z].y, points[x][z].y * 0.2, 1.0f);
+			//colours[x][z] = glm::vec4(temp_height * 0.2, temp_height, 0.5 - temp_height, 1.0f);
+			//colours[x][z] = glm::vec4(temp_height * 0.2, temp_height, temp_height * 0.2, 1.0f);
+			colours[x][z] = newcolour;
 		}		
 	}
-	//displayedData = true;
-
 	//create the triangles from the points
-	for (int z = 0; z < SIZE-1; ++z)
+	for (int z = 0; z < size_ - 1; ++z)
 	{
-		for (int x = 0; x < SIZE-1; ++x)
+		for (int x = 0; x < size_ - 1; ++x)
 		{
 			addTri(points[x][z], points[x][z+1], points[x+1][z+1], colours[x][z]);
 			addTri(points[x][z], points[x + 1][z + 1], points[x + 1][z], colours[x][z]);
 		}
 	}
-	
 }
 
 //Adds a rectangular prism
