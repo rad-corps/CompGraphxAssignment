@@ -45,4 +45,6 @@ private:
 
 	float persistance;
 	float scale2;
+
+	unsigned int grassTexture;
 };

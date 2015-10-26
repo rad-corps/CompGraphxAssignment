@@ -4,10 +4,15 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 #include <iostream>//debugging
 
 #include "Camera.h"
 #include "Gizmos.h"
+
 
 using glm::vec3;
 using glm::vec4;
@@ -68,8 +73,16 @@ bool ComplexApplication::startup() {
 	TwWindowSize(1280, 720);
 
 
+	//Load a texture
+	glEnable(GL_TEXTURE_2D);
+	int imageWidth = 0, imageHeight = 0, imageFormat = 0;
+	unsigned char* data = stbi_load("./data/textures/star.png",	&imageWidth, &imageHeight, &imageFormat, STBI_default);	glGenTextures(1, &grassTexture);
+	glBindTexture(GL_TEXTURE_2D, grassTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	stbi_image_free(data);
 
-
+	//GUI Controls
 	//m_clearColour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	terrainSize = 100;
 	octaves = 1.0f;
@@ -122,36 +135,6 @@ bool ComplexApplication::update(float deltaTime) {
 	// clear the gizmos out for this frame
 	Gizmos::clear();
 
-	//////////////////////////////////////////////////////////////////////////
-	// YOUR UPDATE CODE HERE
-	//////////////////////////////////////////////////////////////////////////
-
-	// an example of mouse picking
-	if (glfwGetMouseButton(m_window, 0) == GLFW_PRESS) {
-		double x = 0, y = 0;
-		glfwGetCursorPos(m_window, &x, &y);
-
-		// plane represents the ground, with a normal of (0,1,0) and a distance of 0 from (0,0,0)
-		glm::vec4 plane(0, 1, 0, 0);
-		m_pickPosition = m_camera->pickAgainstPlane((float)x, (float)y, plane);
-	}
-	Gizmos::addTransform(glm::translate(m_pickPosition));
-
-	// ...for now let's add a grid to the gizmos
-	for (int i = 0; i < 21; ++i) {
-		//generate a random colour
-		vec4 colour = vec4(rand() % 255, rand() % 255, rand() % 255, 1);
-
-
-		Gizmos::addLine(vec3(-10 + i, 0, 10), vec3(-10 + i, 0, -10),
-			colour);
-			//i == 10 ? vec4(1, 1, 1, 1) : vec4(0, 0, 0, 1));
-
-		Gizmos::addLine(vec3(10, 0, -10 + i), vec3(-10, 0, -10 + i),
-			colour);
-			//i == 10 ? vec4(1, 1, 1, 1) : vec4(0, 0, 0, 1));
-	}
-
 	//convert RGB values to a float array then pass to addTerrain
 	float RGBFloats[6];
 	RGBFloats[0] = (float)bottomRed / 255.f;
@@ -172,7 +155,7 @@ void ComplexApplication::draw() {
 	// clear the screen for this frame
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// display the 3D gizmos
-	Gizmos::draw(m_camera->getProjectionView(), glfwGetTime());
+	Gizmos::draw(m_camera->getProjectionView(), grassTexture);
 	// get an orthographic projection matrix and draw 2D gizmos
 	int width = 0, height = 0;
 	glfwGetWindowSize(m_window, &width, &height);
