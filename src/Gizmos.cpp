@@ -6,6 +6,7 @@
 #include <iostream>
 #include "simplexnoise.h"
 #include <vector>
+#include "FileIO.hpp"
 
 Gizmos* Gizmos::sm_singleton = nullptr;
 
@@ -30,54 +31,21 @@ Gizmos::Gizmos(unsigned int a_maxLines, unsigned int a_maxTris,
 		points[i].resize(200);
 		colours[i].resize(200);
 	}
-	
-	// create shaders
-	//const char* vsSource = "#version 410\n \
-	//				 in vec4 Position; \
-	//				 in vec4 Colour; \
-	//				 out vec4 vColour; \
-	//				 uniform mat4 ProjectionView; \
-	//				 void main() { vColour = Colour; gl_Position = ProjectionView * Position; }";
 
-	const char* vsSource = 
-"#version 410\n \
-layout(location=0) in vec4 Position; \
-layout(location=1) in vec4 Colour; \
-layout(location=2) in vec2 TexCoord; \
-out vec2 vTexCoord; \
-out vec4 vColour; \
-uniform mat4 ProjectionView; \
-void main() { \
-vColour = Colour; \
-vTexCoord = TexCoord; \
-gl_Position= ProjectionView * Position;\
-}";
-		 
-	//const char* fsSource = "#version 410\n \
-	//				 in vec4 vColour; \
- //                    out vec4 FragColor; \
-	//				 void main()	{ FragColor = vColour; }";
-
-	const char* fsSource =
-		"#version 410\n \
-		in vec2 vTexCoord; \
-		in vec4 vColour; \
-		out vec4 FragColor; \
-		uniform sampler2D diffuse; \
-		void main() { \
-		FragColor = texture(diffuse,vTexCoord); \
-		FragColor = vColour; \
-}";
+	std::string vsSource = FileIO::read_file("VertShader.glsl");
+	std::string fsSource = FileIO::read_file("FragShader.glsl");	const char * vsSourceCstr = vsSource.c_str();
+	const char * fsSourceCstr = fsSource.c_str();
     
     //Create the Vertex and Fragment Shaders
 	unsigned int vs = glCreateShader(GL_VERTEX_SHADER);
 	unsigned int fs = glCreateShader(GL_FRAGMENT_SHADER);
 
 	//Set the shaders' source code and compile the shaders
-	glShaderSource(vs, 1, (const char**)&vsSource, 0);
+	//glShaderSource(vs, 1, &vsSourceCstr, 0);
+	glShaderSource(vs, 1, &vsSourceCstr, 0);
 	glCompileShader(vs);
 
-	glShaderSource(fs, 1, (const char**)&fsSource, 0);
+	glShaderSource(fs, 1, &fsSourceCstr, 0);
 	glCompileShader(fs);
 
 	//Create the shader program, attach the shaders 
@@ -143,6 +111,8 @@ gl_Position= ProjectionView * Position;\
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glUseProgram(m_shader);
 }
 
 Gizmos::~Gizmos() {
@@ -203,50 +173,6 @@ void Gizmos::addTerrain(const int& size_, const float& octaves_, const float& he
 	}
 }
 
-//Adds a rectangular prism
-void Gizmos::addRectangularPrism(const glm::vec3& startingPoint, const float& w_, const float& h_, const float& d_)
-{
-	//create an arbitrary colour (white)
-	glm::vec4 colour(1.0f, 1.0f, 1.0f, 1.0f);
-	//glm::vec4 colour(0.7, 0.4, 0.8, 1);
-
-	//create the 8 points
-	glm::vec3 points[8];
-	points[0] = startingPoint + glm::vec3(0, 0, 0);
-	points[1] = startingPoint + glm::vec3(w_, 0, 0);
-	points[2] = startingPoint + glm::vec3(w_, h_, 0);
-	points[3] = startingPoint + glm::vec3(0, h_, 0);
-	points[4] = startingPoint + glm::vec3(0, 0, d_);
-	points[5] = startingPoint + glm::vec3(w_, 0, d_);
-	points[6] = startingPoint + glm::vec3(w_, h_, d_);
-	points[7] = startingPoint + glm::vec3(0, h_, d_);
-
-
-	//create triangle 1
-	addTri(points[0], points[2], points[1], colour);
-	addTri(points[2], points[0], points[3], colour);
-	addTri(points[3], points[0], points[4], colour);
-	addTri(points[3], points[4], points[7], colour);
-
-	addTri(points[7], points[6], points[2], colour);
-	addTri(points[2], points[3], points[7], colour);
-	
-	addTri(points[1], points[2], points[6], colour);
-	addTri(points[6], points[5], points[1], colour);
-
-	addTri(points[4], points[6], points[7], colour);
-	addTri(points[4], points[5], points[6], colour);
-
-	addTri(points[1], points[5], points[4], colour);
-	addTri(points[4], points[0], points[1], colour);
-	
-	//addTri(startingPoint, startingPoint + points[1], startingPoint + points[2], colour);
-	//addTri(startingPoint, startingPoint + points[1], startingPoint + points[2], colour);
-
-	
-	//create triangle 2	
-}
-
 void Gizmos::addTri(const glm::vec3& a_rv0, const glm::vec3& a_rv1, const glm::vec3& a_rv2, const glm::vec4& a_colour) {
 	if (sm_singleton != nullptr)
 	{
@@ -291,66 +217,19 @@ void Gizmos::addTri(const glm::vec3& a_rv0, const glm::vec3& a_rv1, const glm::v
 				sm_singleton->m_triCount++;
 			}
 		}
-		else
-		{
-			if (sm_singleton->m_transparentTriCount < sm_singleton->m_maxTris)
-			{
-				//set vertex location
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v0.x = a_rv0.x;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v0.y = a_rv0.y;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v0.z = a_rv0.z;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v0.w = 1;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v1.x = a_rv1.x;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v1.y = a_rv1.y;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v1.z = a_rv1.z;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v1.w = 1;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v2.x = a_rv2.x;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v2.y = a_rv2.y;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v2.z = a_rv2.z;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v2.w = 1;
-
-				//set vertex colour
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v0.r = a_colour.r;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v0.g = a_colour.g;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v0.b = a_colour.b;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v0.a = a_colour.a;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v1.r = a_colour.r;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v1.g = a_colour.g;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v1.b = a_colour.b;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v1.a = a_colour.a;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v2.r = a_colour.r;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v2.g = a_colour.g;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v2.b = a_colour.b;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v2.a = a_colour.a;
-
-				//set vertex UV's
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v0.s = 0;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v0.t = 0;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v1.s = 0;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v1.t = 1;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v2.s = 1;
-				sm_singleton->m_transparentTris[sm_singleton->m_transparentTriCount].v2.t = 1;
-
-				sm_singleton->m_transparentTriCount++;
-			}
-		}
 	}
 }
 
 void Gizmos::draw(const glm::mat4& a_projectionView, const unsigned int& texture_) {
 	if ( sm_singleton != nullptr && ( sm_singleton->m_triCount > 0 || sm_singleton->m_transparentTriCount > 0))
 	{
-		int shader = 0;
-		glGetIntegerv(GL_CURRENT_PROGRAM, &shader);
-
-		glUseProgram(sm_singleton->m_shader);
-		
+		//send through the projection view matrix
 		unsigned int loc = glGetUniformLocation(sm_singleton->m_shader,"ProjectionView");
 		glUniformMatrix4fv(loc, 1, false, glm::value_ptr(a_projectionView));
 
+		//set the active texture
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture_);		loc = glGetUniformLocation(sm_singleton->m_shader, "diffuse");
-		glUniform1i(loc, 0);
+		glBindTexture(GL_TEXTURE_2D, texture_);		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		if (sm_singleton->m_triCount > 0)
 		{
@@ -361,36 +240,5 @@ void Gizmos::draw(const glm::mat4& a_projectionView, const unsigned int& texture
 			glBindVertexArray(sm_singleton->m_triVAO);			
 			glDrawArrays(GL_TRIANGLES, 0, sm_singleton->m_triCount * 3);
 		}
-
-		if (sm_singleton->m_transparentTriCount > 0)
-		{
-			// not ideal to store these, but Gizmos must work stand-alone
-			GLboolean blendEnabled = glIsEnabled(GL_BLEND);
-			GLboolean depthMask = GL_TRUE;
-			glGetBooleanv(GL_DEPTH_WRITEMASK, &depthMask);
-			int src, dst;
-			glGetIntegerv(GL_BLEND_SRC, &src);
-			glGetIntegerv(GL_BLEND_DST, &dst);
-
-			// setup blend states
-			if (blendEnabled == GL_FALSE)
-				glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glDepthMask(GL_FALSE);
-
-			glBindBuffer(GL_ARRAY_BUFFER, sm_singleton->m_transparentTriVBO);
-			glBufferSubData(GL_ARRAY_BUFFER, 0, sm_singleton->m_transparentTriCount * sizeof(GizmoTri), sm_singleton->m_transparentTris);
-
-			glBindVertexArray(sm_singleton->m_transparentTriVAO);
-			glDrawArrays(GL_TRIANGLES, 0, sm_singleton->m_transparentTriCount * 3);
-
-			// reset state
-			glDepthMask(depthMask);
-			glBlendFunc(src, dst);
-			if (blendEnabled == GL_FALSE)
-				glDisable(GL_BLEND);
-		}
-
-		glUseProgram(shader);
 	}
 }
