@@ -151,14 +151,10 @@ void Gizmos::addTerrain(const int& size_, const float& octaves_, const float& he
 			glm::vec4 colourTop(RGBFloats_[3], RGBFloats_[4], RGBFloats_[5], 1.0f);
 			
 			float temp_height = octave_noise_2d(octaves_, persistance_, scale2_, x, z);
-			//std::cout << temp_height << std::endl;
 			points[x][z] = glm::vec3(x, height_ * temp_height, z);
-			//temp_height += 1.0f;
 
 			glm::vec4 newcolour = glm::lerp(colourBottom, colourTop, temp_height);
 			//gen colour based on Y height
-			//colours[x][z] = glm::vec4(temp_height * 0.2, temp_height, 0.5 - temp_height, 1.0f);
-			//colours[x][z] = glm::vec4(temp_height * 0.2, temp_height, temp_height * 0.2, 1.0f);
 			colours[x][z] = newcolour;
 		}		
 	}
@@ -196,15 +192,15 @@ void Gizmos::addTri(const glm::vec3& a_rv0, const glm::vec3& a_rv1, const glm::v
 				sm_singleton->m_tris[sm_singleton->m_triCount].v0.r = a_colour.r;
 				sm_singleton->m_tris[sm_singleton->m_triCount].v0.g = a_colour.g;
 				sm_singleton->m_tris[sm_singleton->m_triCount].v0.b = a_colour.b;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v0.w = a_colour.a;
+				sm_singleton->m_tris[sm_singleton->m_triCount].v0.a = 1;
 				sm_singleton->m_tris[sm_singleton->m_triCount].v1.r = a_colour.r;
 				sm_singleton->m_tris[sm_singleton->m_triCount].v1.g = a_colour.g;
 				sm_singleton->m_tris[sm_singleton->m_triCount].v1.b = a_colour.b;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v1.w = a_colour.a;
+				sm_singleton->m_tris[sm_singleton->m_triCount].v1.a = 1;
 				sm_singleton->m_tris[sm_singleton->m_triCount].v2.r = a_colour.r;
 				sm_singleton->m_tris[sm_singleton->m_triCount].v2.g = a_colour.g;
 				sm_singleton->m_tris[sm_singleton->m_triCount].v2.b = a_colour.b;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v2.w = a_colour.a;
+				sm_singleton->m_tris[sm_singleton->m_triCount].v2.a = 1;
 
 				//set vertex UV's
 				sm_singleton->m_tris[sm_singleton->m_transparentTriCount].v0.s = 0;
