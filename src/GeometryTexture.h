@@ -3,11 +3,11 @@
 #include <glm/fwd.hpp>
 #include <vector>
 
-class Gizmos {
+class GeometryTexture {
 public:
 
 	static void		create(unsigned int a_maxLines = 0xffff, unsigned int a_maxTris = 0xffff,
-						   unsigned int a_max2DLines = 0xff, unsigned int a_max2DTris = 0xff);
+		unsigned int a_max2DLines = 0xff, unsigned int a_max2DTris = 0xff);
 	static void		destroy();
 
 	// removes all Gizmos
@@ -15,7 +15,9 @@ public:
 
 	// draws current Gizmo buffers, either using a combined (projection * view) matrix, or separate matrices
 	static void		draw(const glm::mat4& a_projectionView, const unsigned int& texture_);
-	
+
+	static void		draw(const glm::mat4& a_projectionView);
+
 	// Adds a triangle.
 	static void		addTri(const glm::vec3& a_rv0, const glm::vec3& a_rv1, const glm::vec3& a_rv2, const glm::vec4& a_colour);
 
@@ -24,11 +26,13 @@ public:
 
 	static void		addTerrain(const int& size_, const float& octaves_, const float& height_, float* RGBFloats_, const float& scale2_, const float& persistance_);
 
+	static void		addTextureSquare();
+
 private:
 
-	Gizmos(unsigned int a_maxLines, unsigned int a_maxTris,
-		   unsigned int a_max2DLines, unsigned int a_max2DTris);
-	~Gizmos();
+	GeometryTexture(unsigned int a_maxLines, unsigned int a_maxTris,
+		unsigned int a_max2DLines, unsigned int a_max2DTris);
+	~GeometryTexture();
 
 	struct GizmoVertex {
 		float x, y, z, w;
@@ -56,15 +60,15 @@ private:
 
 	unsigned int	m_triVAO;
 	unsigned int 	m_triVBO;
-	
+
 	unsigned int	m_transparentTriCount;
 	GizmoTri*		m_transparentTris;
 
 	unsigned int	m_transparentTriVAO;
 	unsigned int 	m_transparentTriVBO;
-	
+
 	//singleton
-	static Gizmos*	sm_singleton;
+	static GeometryTexture*	sm_singleton;
 
 	//stores the vertex info for the terrain
 	static std::vector<std::vector<glm::vec3>> points;

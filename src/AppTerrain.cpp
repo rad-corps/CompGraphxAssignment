@@ -5,13 +5,13 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+//#define STB_IMAGE_IMPLEMENTATION
+//#include <stb_image.h>
 
 #include <iostream>//debugging
 
 #include "Camera.h"
-#include "Gizmos.h"
+#include "GeometryTerrain.h"
 
 
 using glm::vec3;
@@ -56,7 +56,7 @@ bool AppTerrain::startup() {
 	createWindow("Complex Game Systems", 1280, 720);
 
 	// start the gizmo system that can draw basic shapes
-	Gizmos::create();
+	GeometryTerrain::create();
 
 	// create a camera
 	m_camera = new Camera(glm::pi<float>() * 0.25f, 16 / 9.f, 0.1f, 1000.f);
@@ -73,14 +73,14 @@ bool AppTerrain::startup() {
 	TwWindowSize(1280, 720);
 
 
-	//Load a texture
-	glEnable(GL_TEXTURE_2D);
-	int imageWidth = 0, imageHeight = 0, imageFormat = 0;
-	unsigned char* data = stbi_load("./data/textures/star.png",	&imageWidth, &imageHeight, &imageFormat, STBI_default);	glGenTextures(1, &grassTexture);
-	glBindTexture(GL_TEXTURE_2D, grassTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	stbi_image_free(data);
+	////Load a texture
+	//glEnable(GL_TEXTURE_2D);
+	//int imageWidth = 0, imageHeight = 0, imageFormat = 0;
+	//unsigned char* data = stbi_load("./data/textures/star.png",	&imageWidth, &imageHeight, &imageFormat, STBI_default);	//glGenTextures(1, &grassTexture);
+	//glBindTexture(GL_TEXTURE_2D, grassTexture);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	////glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//stbi_image_free(data);
 
 	//GUI Controls
 	//m_clearColour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -116,7 +116,7 @@ void AppTerrain::shutdown() {
 
 	// delete our camera and cleanup gizmos
 	delete m_camera;
-	Gizmos::destroy();
+	GeometryTerrain::destroy();
 
 	// destroy our window properly
 	destroyWindow();
@@ -133,7 +133,7 @@ bool AppTerrain::update(float deltaTime) {
 	m_camera->update(deltaTime);
 
 	// clear the gizmos out for this frame
-	Gizmos::clear();
+	GeometryTerrain::clear();
 
 	//convert RGB values to a float array then pass to addTerrain
 	float RGBFloats[6];
@@ -144,7 +144,7 @@ bool AppTerrain::update(float deltaTime) {
 	RGBFloats[4] = (float)topGreen / 255.f;
 	RGBFloats[5] = (float)topBlue / 255.f;
 
-	Gizmos::addTerrain(terrainSize, octaves, height, RGBFloats, scale2, persistance);
+	GeometryTerrain::addTerrain(terrainSize, octaves, height, RGBFloats, scale2, persistance);
 
 	// return true, else the application closes
 	return true;
@@ -155,7 +155,7 @@ void AppTerrain::draw() {
 	// clear the screen for this frame
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// display the 3D gizmos
-	Gizmos::draw(m_camera->getProjectionView(), grassTexture);
+	GeometryTerrain::draw(m_camera->getProjectionView(), grassTexture);
 	// get an orthographic projection matrix and draw 2D gizmos
 	int width = 0, height = 0;
 	glfwGetWindowSize(m_window, &width, &height);

@@ -1,4 +1,4 @@
-#include "Gizmos.h"
+#include "GeometryTerrain.h"
 #include "gl_core_4_4.h"
 #define GLM_SWIZZLE
 #include <glm/glm.hpp>
@@ -8,12 +8,12 @@
 #include <vector>
 #include "FileIO.hpp"
 
-Gizmos* Gizmos::sm_singleton = nullptr;
+GeometryTerrain* GeometryTerrain::sm_singleton = nullptr;
 
-std::vector<std::vector<glm::vec3>> Gizmos::points;
-std::vector<std::vector<glm::vec4>> Gizmos::colours;
+std::vector<std::vector<glm::vec3>> GeometryTerrain::points;
+std::vector<std::vector<glm::vec4>> GeometryTerrain::colours;
 
-Gizmos::Gizmos(unsigned int a_maxLines, unsigned int a_maxTris,
+GeometryTerrain::GeometryTerrain(unsigned int a_maxLines, unsigned int a_maxTris,
 			   unsigned int a_max2DLines, unsigned int a_max2DTris)
 	: 
 	m_maxTris(a_maxTris),
@@ -32,8 +32,8 @@ Gizmos::Gizmos(unsigned int a_maxLines, unsigned int a_maxTris,
 		colours[i].resize(200);
 	}
 
-	std::string vsSource = FileIO::read_file("VertShader.glsl");
-	std::string fsSource = FileIO::read_file("FragShader.glsl");	const char * vsSourceCstr = vsSource.c_str();
+	std::string vsSource = FileIO::read_file("ShaderVertTerrain.glsl");
+	std::string fsSource = FileIO::read_file("ShaderFragTerrain.glsl");	const char * vsSourceCstr = vsSource.c_str();
 	const char * fsSourceCstr = fsSource.c_str();
     
     //Create the Vertex and Fragment Shaders
@@ -115,7 +115,7 @@ Gizmos::Gizmos(unsigned int a_maxLines, unsigned int a_maxTris,
 	glUseProgram(m_shader);
 }
 
-Gizmos::~Gizmos() {
+	GeometryTerrain::~GeometryTerrain() {
 	delete[] m_tris;
 	delete[] m_transparentTris;
 	glDeleteBuffers( 1, &m_triVBO );
@@ -125,23 +125,23 @@ Gizmos::~Gizmos() {
 	glDeleteProgram(m_shader);
 }
 
-void Gizmos::create(unsigned int a_maxLines /* = 0xffff */, unsigned int a_maxTris /* = 0xffff */,
+	void GeometryTerrain::create(unsigned int a_maxLines /* = 0xffff */, unsigned int a_maxTris /* = 0xffff */,
 					unsigned int a_max2DLines /* = 0xff */, unsigned int a_max2DTris /* = 0xff */) {
 	if (sm_singleton == nullptr)
-		sm_singleton = new Gizmos(a_maxLines,a_maxTris,a_max2DLines,a_max2DTris);
+		sm_singleton = new GeometryTerrain(a_maxLines, a_maxTris, a_max2DLines, a_max2DTris);
 }
 
-void Gizmos::destroy() {
+	void GeometryTerrain::destroy() {
 	delete sm_singleton;
 	sm_singleton = nullptr;
 }
 
-void Gizmos::clear() {
+	void GeometryTerrain::clear() {
 	sm_singleton->m_triCount = 0;
 	sm_singleton->m_transparentTriCount = 0;
 }
 
-void Gizmos::addTerrain(const int& size_, const float& octaves_, const float& height_, float* RGBFloats_, const float& scale2_, const float& persistance_)
+void GeometryTerrain::addTerrain(const int& size_, const float& octaves_, const float& height_, float* RGBFloats_, const float& scale2_, const float& persistance_)
 {
 	for (int z = 0; z < size_; ++z)
 	{
@@ -169,7 +169,7 @@ void Gizmos::addTerrain(const int& size_, const float& octaves_, const float& he
 	}
 }
 
-void Gizmos::addTri(const glm::vec3& a_rv0, const glm::vec3& a_rv1, const glm::vec3& a_rv2, const glm::vec4& a_colour) {
+	void GeometryTerrain::addTri(const glm::vec3& a_rv0, const glm::vec3& a_rv1, const glm::vec3& a_rv2, const glm::vec4& a_colour) {
 	if (sm_singleton != nullptr)
 	{
 		if (a_colour.w == 1)
@@ -216,7 +216,18 @@ void Gizmos::addTri(const glm::vec3& a_rv0, const glm::vec3& a_rv1, const glm::v
 	}
 }
 
-void Gizmos::draw(const glm::mat4& a_projectionView, const unsigned int& texture_) {
+	void GeometryTerrain::addTextureSquare()
+{
+
+
+}
+
+	void GeometryTerrain::draw(const glm::mat4& a_projectionView)
+{
+
+}
+
+	void GeometryTerrain::draw(const glm::mat4& a_projectionView, const unsigned int& texture_) {
 	if ( sm_singleton != nullptr && ( sm_singleton->m_triCount > 0 || sm_singleton->m_transparentTriCount > 0))
 	{
 		//send through the projection view matrix
