@@ -9,11 +9,11 @@
 
 class Camera;
 
-class ComplexApplication : public BaseApplication {
+class AppTerrain : public BaseApplication {
 public:
 
-	ComplexApplication();
-	virtual ~ComplexApplication();
+	AppTerrain();
+	virtual ~AppTerrain();
 
 	virtual bool startup();
 	virtual void shutdown();

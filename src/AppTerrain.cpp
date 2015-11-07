@@ -1,4 +1,4 @@
-#include "ComplexApplication.h"
+#include "AppTerrain.h"
 #include "gl_core_4_4.h"
 
 #include <GLFW/glfw3.h>
@@ -40,17 +40,17 @@ void OnWindowResize(GLFWwindow*, int w, int h) {
 }
 
 
-ComplexApplication::ComplexApplication()
+AppTerrain::AppTerrain()
 	: m_camera(nullptr) {
 
 	
 }
 
-ComplexApplication::~ComplexApplication() {
+AppTerrain::~AppTerrain() {
 
 }
 
-bool ComplexApplication::startup() {
+bool AppTerrain::startup() {
 
 	// create a basic window
 	createWindow("Complex Game Systems", 1280, 720);
@@ -105,7 +105,7 @@ bool ComplexApplication::startup() {
 	return true;
 }
 
-void ComplexApplication::shutdown() {
+void AppTerrain::shutdown() {
 
 	//////////////////////////////////////////////////////////////////////////
 	// YOUR SHUTDOWN CODE HERE
@@ -122,7 +122,7 @@ void ComplexApplication::shutdown() {
 	destroyWindow();
 }
 
-bool ComplexApplication::update(float deltaTime) {
+bool AppTerrain::update(float deltaTime) {
 	
 	// close the application if the window closes
 	if (glfwWindowShouldClose(m_window) ||
@@ -150,7 +150,7 @@ bool ComplexApplication::update(float deltaTime) {
 	return true;
 }
 
-void ComplexApplication::draw() {
+void AppTerrain::draw() {
 
 	// clear the screen for this frame
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
