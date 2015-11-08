@@ -7,30 +7,13 @@
 #include "simplexnoise.h"
 #include <vector>
 #include "FileIO.hpp"
+#include <stb_image.h>
+//#include "SOIL.h"
 
-GeometryTexture* GeometryTexture::sm_singleton = nullptr;
 
-std::vector<std::vector<glm::vec3>> GeometryTexture::points;
-std::vector<std::vector<glm::vec4>> GeometryTexture::colours;
-
-GeometryTexture::GeometryTexture(unsigned int a_maxLines, unsigned int a_maxTris,
-	unsigned int a_max2DLines, unsigned int a_max2DTris)
-	:
-	m_maxTris(a_maxTris),
-	m_triCount(0),
-	m_tris(new GizmoTri[a_maxTris]),
-	m_transparentTriCount(0),
-	m_transparentTris(new GizmoTri[a_maxTris])
+GeometryTexture::GeometryTexture()
 {
-
-	//preallocate vector memory
-	points.resize(200);
-	colours.resize(200);
-	for (int i = 0; i < 200; ++i)
-	{
-		points[i].resize(200);
-		colours[i].resize(200);
-	}
+	std::cout << "GeometryTexture" << std::endl;
 
 	std::string vsSource = FileIO::read_file("ShaderVertTexture.glsl");
 	std::string fsSource = FileIO::read_file("ShaderFragTexture.glsl");	const char * vsSourceCstr = vsSource.c_str();
@@ -49,203 +32,158 @@ GeometryTexture::GeometryTexture(unsigned int a_maxLines, unsigned int a_maxTris
 	glCompileShader(fs);
 
 	//Create the shader program, attach the shaders 
-	m_shader = glCreateProgram();
-	glAttachShader(m_shader, vs);
-	glAttachShader(m_shader, fs);
+	shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vs);
+	glAttachShader(shaderProgram, fs);
 
 	//set the locations for the "in vars" in the shaders. this can also be done in the shader code itself
-	glBindAttribLocation(m_shader, 0, "Position");
-	glBindAttribLocation(m_shader, 1, "Colour");
-	glBindAttribLocation(m_shader, 2, "TexCoord");
+	//glBindAttribLocation(shaderProgram, 0, "Position");
+	//glBindAttribLocation(shaderProgram, 1, "Colour");
+	//glBindAttribLocation(shaderProgram, 1, "TexCoord");
 
 	//link the glsl program once the shaders are attached
-	glLinkProgram(m_shader);
+	glLinkProgram(shaderProgram);
 
 
 	//shader error checking and reporting
 	int success = GL_FALSE;
 	int infoLogLength = 0;
-	glGetShaderiv(m_shader, GL_INFO_LOG_LENGTH, &infoLogLength);
 
-	if (infoLogLength > 0)
+	glGetShaderiv(vs, GL_COMPILE_STATUS, &success);
+	if (success == GL_FALSE)
 	{
-		char* infoLog = new char[infoLogLength];
-		//cout << infoLog << endl;
-		glGetShaderInfoLog(m_shader, infoLogLength, 0, infoLog);
-		printf("Error: glGetShaderiv failed\n%s\n", infoLog);
-		delete[] infoLog;
+		GLint maxLength = 0;
+		glGetShaderiv(vs, GL_INFO_LOG_LENGTH, &maxLength);
+
+		// The maxLength includes the NULL character
+		std::vector<GLchar> errorLog(maxLength);
+		glGetShaderInfoLog(vs, maxLength, &maxLength, &errorLog[0]);
+
+		for (int i = 0; i < errorLog.size(); ++i)
+		{
+			std::cout << errorLog[i];
+		}
+
+		// Provide the infolog in whatever manor you deem best.
+		// Exit with failure.
+		glDeleteShader(vs); // Don't leak the shader.
+		return;
+	}
+
+	glGetShaderiv(fs, GL_COMPILE_STATUS, &success);
+	if (success == GL_FALSE)
+	{
+		GLint maxLength = 0;
+		glGetShaderiv(fs, GL_INFO_LOG_LENGTH, &maxLength);
+
+		// The maxLength includes the NULL character
+		std::vector<GLchar> errorLog(maxLength);
+		glGetShaderInfoLog(fs, maxLength, &maxLength, &errorLog[0]);
+
+		for (int i = 0; i < errorLog.size(); ++i)
+		{
+			std::cout << errorLog[i];
+		}
+
+		// Provide the infolog in whatever manor you deem best.
+		// Exit with failure.
+		glDeleteShader(fs); // Don't leak the shader.
+		return;
 	}
 
 	//glsl program error checking
-	glGetProgramiv(m_shader, GL_LINK_STATUS, &success);
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
 	if (success == GL_FALSE)
-	{
+	{		
 		printf("Error: glGetProgramiv Failed!\n\n");
+		
+		GLint maxLength = 0;
+		glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
+
+		//The maxLength includes the NULL character
+		std::vector<GLchar> infoLog(maxLength);
+		glGetProgramInfoLog(shaderProgram, maxLength, &maxLength, &infoLog[0]);
+
+		
+		for (int i = 0; i < infoLog.size(); ++i)
+		{
+			std::cout << infoLog[i];
+		}
+
+		//The program is useless now. So delete it.
+		glDeleteProgram(shaderProgram);
+
+		//Provide the infolog in whatever manner you deem best.
+		//Exit with failure.
+		return;
 	}
 
 	//we can delete the original shader memory once the program is linked, as the program has its own copy
 	glDeleteShader(vs);
 	glDeleteShader(fs);
 
-	////ARG1: reserve buffer data for the VBO currently bound to GL_ARRAY_BUFFER (m_lineVBO). 
-	////ARG2: reserve maxlines * multiplied by the size of a GizmoLine to get the number of bytes to reserve
-	////ARG3: m_lines is an array of GizmoLines whose length is m_maxLines (see constructor initialiser list)
-	////void glBufferData(GLenum target, GLsizeiptr size, const GLvoid * data, GLenum usage);	
-	//glBufferData(GL_ARRAY_BUFFER, m_maxLines * sizeof(GizmoLine), m_lines, GL_DYNAMIC_DRAW);
+	float vertexData[] = {
+		0, 0, 0, 1, 0, 0,
+		0, 0, 1, 1, 0, 1,
+		1, 0, 1, 1, 1, 1,
+		1, 0, 0, 1, 1, 0,
+	};
+	
+	unsigned int indexData[] = {
+		0, 1, 2,
+		0, 2, 3,
+	};
 
-	glGenBuffers(1, &m_triVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, m_triVBO);
-	glBufferData(GL_ARRAY_BUFFER, m_maxTris * sizeof(GizmoTri), m_tris, GL_DYNAMIC_DRAW);
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)* 6 * 4, vertexData, GL_DYNAMIC_DRAW);
+	//glBufferData(GL_ARRAY_BUFFER, m_maxTris * sizeof(GizmoTri), m_tris, GL_STREAM_DRAW);
+	
+	glGenBuffers(1, &ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)* 6, indexData, GL_STATIC_DRAW);
 
-
-	//The vertex array tracks the glBindBuffer, glEnableVertexAttribArray and glVertexAttribPointer state of the bound buffer m_triVBO
-	glGenVertexArrays(1, &m_triVAO);
-	glBindVertexArray(m_triVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, m_triVBO);
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(GizmoVertex), 0);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, sizeof(GizmoVertex), ((char*)0) + 16);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GizmoVertex), ((char*)0) + 32);
-
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(float)* 6, 0);				//the vertex position coordinates	
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float)* 6, ((char*)0) + 16); //UV coordinates
+	
+	//unbind the opengl buffers
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	glUseProgram(m_shader);
+	glUseProgram(shaderProgram);
+
+	////Load a texture
+	glEnable(GL_TEXTURE_2D);
+	int imageWidth = 0, imageHeight = 0, imageFormat = 0;
+	unsigned char* data = stbi_load("./data/textures/dot.png",	&imageWidth, &imageHeight, &imageFormat, STBI_default);	glGenTextures(1, &grassTexture);
+	glBindTexture(GL_TEXTURE_2D, grassTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	stbi_image_free(data);
 }
 
-GeometryTexture::~GeometryTexture() {
-	delete[] m_tris;
-	delete[] m_transparentTris;
-	glDeleteBuffers(1, &m_triVBO);
-	glDeleteBuffers(1, &m_transparentTriVBO);
-	glDeleteVertexArrays(1, &m_triVAO);
-	glDeleteVertexArrays(1, &m_transparentTriVAO);
-	glDeleteProgram(m_shader);
-}
 
-void GeometryTexture::create(unsigned int a_maxLines /* = 0xffff */, unsigned int a_maxTris /* = 0xffff */,
-	unsigned int a_max2DLines /* = 0xff */, unsigned int a_max2DTris /* = 0xff */) {
-	if (sm_singleton == nullptr)
-		sm_singleton = new GeometryTexture(a_maxLines, a_maxTris, a_max2DLines, a_max2DTris);
-}
 
-void GeometryTexture::destroy() {
-	delete sm_singleton;
-	sm_singleton = nullptr;
-}
-
-void GeometryTexture::clear() {
-	sm_singleton->m_triCount = 0;
-	sm_singleton->m_transparentTriCount = 0;
-}
-
-void GeometryTexture::addTerrain(const int& size_, const float& octaves_, const float& height_, float* RGBFloats_, const float& scale2_, const float& persistance_)
+void GeometryTexture::draw(const glm::mat4& a_projectionView) 
 {
-	for (int z = 0; z < size_; ++z)
-	{
-		for (int x = 0; x < size_; ++x)
-		{
-			glm::vec4 colourBottom(RGBFloats_[0], RGBFloats_[1], RGBFloats_[2], 1.0f);
-			glm::vec4 colourTop(RGBFloats_[3], RGBFloats_[4], RGBFloats_[5], 1.0f);
-
-			float temp_height = octave_noise_2d(octaves_, persistance_, scale2_, x, z);
-			points[x][z] = glm::vec3(x, height_ * temp_height, z);
-
-			glm::vec4 newcolour = glm::lerp(colourBottom, colourTop, temp_height);
-			//gen colour based on Y height
-			colours[x][z] = newcolour;
-		}
-	}
-	//create the triangles from the points
-	for (int z = 0; z < size_ - 1; ++z)
-	{
-		for (int x = 0; x < size_ - 1; ++x)
-		{
-			addTri(points[x][z], points[x][z + 1], points[x + 1][z + 1], colours[x][z]);
-			addTri(points[x][z], points[x + 1][z + 1], points[x + 1][z], colours[x][z]);
-		}
-	}
-}
-
-void GeometryTexture::addTri(const glm::vec3& a_rv0, const glm::vec3& a_rv1, const glm::vec3& a_rv2, const glm::vec4& a_colour) {
-	if (sm_singleton != nullptr)
-	{
-		if (a_colour.w == 1)
-		{
-			if (sm_singleton->m_triCount < sm_singleton->m_maxTris)
-			{
-				sm_singleton->m_tris[sm_singleton->m_triCount].v0.x = a_rv0.x;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v0.y = a_rv0.y;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v0.z = a_rv0.z;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v0.w = 1;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v1.x = a_rv1.x;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v1.y = a_rv1.y;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v1.z = a_rv1.z;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v1.w = 1;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v2.x = a_rv2.x;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v2.y = a_rv2.y;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v2.z = a_rv2.z;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v2.w = 1;
-
-				sm_singleton->m_tris[sm_singleton->m_triCount].v0.r = a_colour.r;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v0.g = a_colour.g;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v0.b = a_colour.b;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v0.a = 1;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v1.r = a_colour.r;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v1.g = a_colour.g;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v1.b = a_colour.b;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v1.a = 1;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v2.r = a_colour.r;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v2.g = a_colour.g;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v2.b = a_colour.b;
-				sm_singleton->m_tris[sm_singleton->m_triCount].v2.a = 1;
-
-				//set vertex UV's
-				sm_singleton->m_tris[sm_singleton->m_transparentTriCount].v0.s = 0;
-				sm_singleton->m_tris[sm_singleton->m_transparentTriCount].v0.t = 0;
-				sm_singleton->m_tris[sm_singleton->m_transparentTriCount].v1.s = 1;
-				sm_singleton->m_tris[sm_singleton->m_transparentTriCount].v1.t = 1;
-				sm_singleton->m_tris[sm_singleton->m_transparentTriCount].v2.s = 0;
-				sm_singleton->m_tris[sm_singleton->m_transparentTriCount].v2.t = 1;
-
-				sm_singleton->m_triCount++;
-			}
-		}
-	}
-}
-
-void GeometryTexture::addTextureSquare()
-{
-
-
-}
-
-void GeometryTexture::draw(const glm::mat4& a_projectionView)
-{
-
-}
-
-void GeometryTexture::draw(const glm::mat4& a_projectionView, const unsigned int& texture_) {
-	if (sm_singleton != nullptr && (sm_singleton->m_triCount > 0 || sm_singleton->m_transparentTriCount > 0))
-	{
-		//send through the projection view matrix
-		unsigned int loc = glGetUniformLocation(sm_singleton->m_shader, "ProjectionView");
-		glUniformMatrix4fv(loc, 1, false, glm::value_ptr(a_projectionView));
-
-		//set the active texture
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture_);		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-		if (sm_singleton->m_triCount > 0)
-		{
-			glBindBuffer(GL_ARRAY_BUFFER, sm_singleton->m_triVBO);
-			glBufferSubData(GL_ARRAY_BUFFER, 0, sm_singleton->m_triCount * sizeof(GizmoTri), sm_singleton->m_tris);
-
-			//by binding this vertex array object, we dont have to set our vertex attrib pointers each time
-			glBindVertexArray(sm_singleton->m_triVAO);
-			glDrawArrays(GL_TRIANGLES, 0, sm_singleton->m_triCount * 3);
-		}
-	}
+	//std::cout << "draw" << std::endl;
+	// use our texture program
+	glUseProgram(shaderProgram);
+	// bind the camera
+	int loc = glGetUniformLocation(shaderProgram, "ProjectionView");
+	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(a_projectionView));
+	// set texture slot
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, grassTexture);
+	// tell the shader where it is
+	loc = glGetUniformLocation(shaderProgram, "diffuse");
+	glUniform1i(loc, 0);
+	// draw
+	glBindVertexArray(vao);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 }

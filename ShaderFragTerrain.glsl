@@ -12,6 +12,6 @@ void main()
 	//FragColor = vColour; 
 	//FragColor = texture(mysampler,vTexCoord); 
 
-	FragColor = texture(mysampler,vTexCoord) + vColour; 
+	FragColor = texture(mysampler,vTexCoord) * vColour; 
 	
 }

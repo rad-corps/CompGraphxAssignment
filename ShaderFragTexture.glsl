@@ -1,17 +1,12 @@
 #version 410
 
 in vec2 vTexCoord; 
-in vec4 vColour; 
-
 out vec4 FragColor; 
 
-uniform sampler2D mysampler; 
+uniform sampler2D diffuse; 
 
 void main() 
 { 
-	//FragColor = vColour; 
-	//FragColor = texture(mysampler,vTexCoord); 
-
-	FragColor = texture(mysampler,vTexCoord) + vColour; 
-	
+	FragColor = texture(diffuse,vTexCoord);
+	FragColor = vec4(1.0,0.0,0.0,1.0);
 }

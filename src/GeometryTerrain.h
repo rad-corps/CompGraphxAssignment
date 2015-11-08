@@ -14,12 +14,10 @@ public:
 	static void		clear();
 
 	// draws current Gizmo buffers, either using a combined (projection * view) matrix, or separate matrices
-	static void		draw(const glm::mat4& a_projectionView, const unsigned int& texture_);
-
 	static void		draw(const glm::mat4& a_projectionView);
 	
 	// Adds a triangle.
-	static void		addTri(const glm::vec3& a_rv0, const glm::vec3& a_rv1, const glm::vec3& a_rv2, const glm::vec4& a_colour);
+	static void		addTri(const glm::vec3& a_rv0, const glm::vec3& a_rv1, const glm::vec3& a_rv2, const glm::vec4& a_colour, const int& triNum_);
 
 	//Adds a rectangular prism
 	static void		addRectangularPrism(const glm::vec3& startingPoint, const float& w_, const float& h_, const float& d_);
@@ -73,4 +71,6 @@ private:
 	//stores the vertex info for the terrain
 	static std::vector<std::vector<glm::vec3>> points;
 	static std::vector<std::vector<glm::vec4>> colours;
+	
+	static unsigned int grassTexture;
 };

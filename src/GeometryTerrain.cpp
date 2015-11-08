@@ -7,11 +7,14 @@
 #include "simplexnoise.h"
 #include <vector>
 #include "FileIO.hpp"
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 GeometryTerrain* GeometryTerrain::sm_singleton = nullptr;
 
 std::vector<std::vector<glm::vec3>> GeometryTerrain::points;
 std::vector<std::vector<glm::vec4>> GeometryTerrain::colours;
+unsigned int GeometryTerrain::grassTexture;
 
 GeometryTerrain::GeometryTerrain(unsigned int a_maxLines, unsigned int a_maxTris,
 			   unsigned int a_max2DLines, unsigned int a_max2DTris)
@@ -106,11 +109,23 @@ GeometryTerrain::GeometryTerrain(unsigned int a_maxLines, unsigned int a_maxTris
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(GizmoVertex), 0);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, sizeof(GizmoVertex), ((char*)0) + 16);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(GizmoVertex), ((char*)0) + 16);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GizmoVertex), ((char*)0) + 32);
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	//load texture
+	//Load a texture
+	glEnable(GL_TEXTURE_2D);
+	int imageWidth = 0, imageHeight = 0, imageFormat = 0;
+	unsigned char* data = stbi_load("./data/textures/grass.jpg", &imageWidth, &imageHeight, &imageFormat, STBI_rgb);	grassTexture = 0;	glGenTextures(1, &grassTexture);
+	glBindTexture(GL_TEXTURE_2D, grassTexture);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glTexImage2D(GL_TEXTURE_2D, 0, imageFormat, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	stbi_image_free(data);
+
 
 	glUseProgram(m_shader);
 }
@@ -163,13 +178,14 @@ void GeometryTerrain::addTerrain(const int& size_, const float& octaves_, const 
 	{
 		for (int x = 0; x < size_ - 1; ++x)
 		{
-			addTri(points[x][z], points[x][z+1], points[x+1][z+1], colours[x][z]);
-			addTri(points[x][z], points[x + 1][z + 1], points[x + 1][z], colours[x][z]);
+			addTri(points[x][z], points[x][z+1], points[x+1][z+1], colours[x][z], 0);
+			addTri(points[x][z], points[x + 1][z + 1], points[x + 1][z], colours[x][z], 1);
 		}
 	}
 }
 
-	void GeometryTerrain::addTri(const glm::vec3& a_rv0, const glm::vec3& a_rv1, const glm::vec3& a_rv2, const glm::vec4& a_colour) {
+void GeometryTerrain::addTri(const glm::vec3& a_rv0, const glm::vec3& a_rv1, const glm::vec3& a_rv2, const glm::vec4& a_colour, const int& triNum_) 
+{
 	if (sm_singleton != nullptr)
 	{
 		if (a_colour.w == 1)
@@ -202,13 +218,26 @@ void GeometryTerrain::addTerrain(const int& size_, const float& octaves_, const 
 				sm_singleton->m_tris[sm_singleton->m_triCount].v2.b = a_colour.b;
 				sm_singleton->m_tris[sm_singleton->m_triCount].v2.a = 1;
 
-				//set vertex UV's
-				sm_singleton->m_tris[sm_singleton->m_transparentTriCount].v0.s = 0;
-				sm_singleton->m_tris[sm_singleton->m_transparentTriCount].v0.t = 0;
-				sm_singleton->m_tris[sm_singleton->m_transparentTriCount].v1.s = 1;
-				sm_singleton->m_tris[sm_singleton->m_transparentTriCount].v1.t = 1;
-				sm_singleton->m_tris[sm_singleton->m_transparentTriCount].v2.s = 0;
-				sm_singleton->m_tris[sm_singleton->m_transparentTriCount].v2.t = 1;
+				if (triNum_ <= 0)
+				{
+					//set vertex UV's
+					sm_singleton->m_tris[sm_singleton->m_triCount].v0.s = 0;
+					sm_singleton->m_tris[sm_singleton->m_triCount].v0.t = 0;
+					sm_singleton->m_tris[sm_singleton->m_triCount].v1.s = 0;
+					sm_singleton->m_tris[sm_singleton->m_triCount].v1.t = 1;
+					sm_singleton->m_tris[sm_singleton->m_triCount].v2.s = 1;
+					sm_singleton->m_tris[sm_singleton->m_triCount].v2.t = 1;
+				}
+				if (triNum_ >= 1)
+				{
+					//set vertex UV's
+					sm_singleton->m_tris[sm_singleton->m_triCount].v0.s = 0;
+					sm_singleton->m_tris[sm_singleton->m_triCount].v0.t = 0;
+					sm_singleton->m_tris[sm_singleton->m_triCount].v1.s = 1;
+					sm_singleton->m_tris[sm_singleton->m_triCount].v1.t = 1;
+					sm_singleton->m_tris[sm_singleton->m_triCount].v2.s = 1;
+					sm_singleton->m_tris[sm_singleton->m_triCount].v2.t = 0;
+				}
 
 				sm_singleton->m_triCount++;
 			}
@@ -222,21 +251,41 @@ void GeometryTerrain::addTerrain(const int& size_, const float& octaves_, const 
 
 }
 
-	void GeometryTerrain::draw(const glm::mat4& a_projectionView)
+//void GeometryTerrain::draw(const glm::mat4& a_projectionView) 
+//{
+//	if ( sm_singleton != nullptr && ( sm_singleton->m_triCount > 0 || sm_singleton->m_transparentTriCount > 0))
+//	{
+//		//send through the projection view matrix
+//		unsigned int loc = glGetUniformLocation(sm_singleton->m_shader,"ProjectionView");
+//		glUniformMatrix4fv(loc, 1, false, glm::value_ptr(a_projectionView));
+//
+//		//set the active texture
+//		glActiveTexture(GL_TEXTURE0);
+//		glBindTexture(GL_TEXTURE_2D, grassTexture);//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//
+//		if (sm_singleton->m_triCount > 0)
+//		{
+//			glBindBuffer(GL_ARRAY_BUFFER, sm_singleton->m_triVBO);
+//			glBufferSubData(GL_ARRAY_BUFFER, 0, sm_singleton->m_triCount * sizeof(GizmoTri), sm_singleton->m_tris);
+//
+//			//by binding this vertex array object, we dont have to set our vertex attrib pointers each time
+//			glBindVertexArray(sm_singleton->m_triVAO);			
+//			glDrawArrays(GL_TRIANGLES, 0, sm_singleton->m_triCount * 3);
+//		}
+//	}
+//}
+
+void GeometryTerrain::draw(const glm::mat4& a_projectionView)
 {
-
-}
-
-	void GeometryTerrain::draw(const glm::mat4& a_projectionView, const unsigned int& texture_) {
-	if ( sm_singleton != nullptr && ( sm_singleton->m_triCount > 0 || sm_singleton->m_transparentTriCount > 0))
+	if (sm_singleton != nullptr && (sm_singleton->m_triCount > 0 || sm_singleton->m_transparentTriCount > 0))
 	{
 		//send through the projection view matrix
-		unsigned int loc = glGetUniformLocation(sm_singleton->m_shader,"ProjectionView");
+		unsigned int loc = glGetUniformLocation(sm_singleton->m_shader, "ProjectionView");
 		glUniformMatrix4fv(loc, 1, false, glm::value_ptr(a_projectionView));
 
 		//set the active texture
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture_);		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glBindTexture(GL_TEXTURE_2D, grassTexture);		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		if (sm_singleton->m_triCount > 0)
 		{
@@ -244,7 +293,7 @@ void GeometryTerrain::addTerrain(const int& size_, const float& octaves_, const 
 			glBufferSubData(GL_ARRAY_BUFFER, 0, sm_singleton->m_triCount * sizeof(GizmoTri), sm_singleton->m_tris);
 
 			//by binding this vertex array object, we dont have to set our vertex attrib pointers each time
-			glBindVertexArray(sm_singleton->m_triVAO);			
+			glBindVertexArray(sm_singleton->m_triVAO);
 			glDrawArrays(GL_TRIANGLES, 0, sm_singleton->m_triCount * 3);
 		}
 	}

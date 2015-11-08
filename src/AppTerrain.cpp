@@ -5,9 +5,6 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
-//#define STB_IMAGE_IMPLEMENTATION
-//#include <stb_image.h>
-
 #include <iostream>//debugging
 
 #include "Camera.h"
@@ -71,16 +68,6 @@ bool AppTerrain::startup() {
 	TwInit(TW_OPENGL_CORE, nullptr);
 //	TwInit(TW_OPENGL, nullptr);
 	TwWindowSize(1280, 720);
-
-
-	////Load a texture
-	//glEnable(GL_TEXTURE_2D);
-	//int imageWidth = 0, imageHeight = 0, imageFormat = 0;
-	//unsigned char* data = stbi_load("./data/textures/star.png",	&imageWidth, &imageHeight, &imageFormat, STBI_default);	//glGenTextures(1, &grassTexture);
-	//glBindTexture(GL_TEXTURE_2D, grassTexture);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	////glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//stbi_image_free(data);
 
 	//GUI Controls
 	//m_clearColour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -155,7 +142,7 @@ void AppTerrain::draw() {
 	// clear the screen for this frame
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// display the 3D gizmos
-	GeometryTerrain::draw(m_camera->getProjectionView(), grassTexture);
+	GeometryTerrain::draw(m_camera->getProjectionView());
 	// get an orthographic projection matrix and draw 2D gizmos
 	int width = 0, height = 0;
 	glfwGetWindowSize(m_window, &width, &height);

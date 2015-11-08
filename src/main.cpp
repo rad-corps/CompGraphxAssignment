@@ -6,8 +6,8 @@
 
 int main() {
 
-	//BaseApplication* app = new AppTerrain();
-	BaseApplication* app = new AppTexture();
+	BaseApplication* app = new AppTerrain();
+	//BaseApplication* app = new AppTexture();
 	if (app->startup())
 		app->run();
 	app->shutdown();
