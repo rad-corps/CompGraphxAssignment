@@ -27,8 +27,6 @@ public:
 
 	static void		addTerrain(const int& size_, const float& octaves_, const float& height_, float* RGBFloats_, const float& scale2_, const float& persistance_);
 
-	static void		addTextureSquare();
-
 private:
 
 	GeometryTerrain(unsigned int a_maxLines, unsigned int a_maxTris,
@@ -53,21 +51,14 @@ private:
 		GizmoVertex v2;
 	};
 
-	unsigned int	m_shader;
+	unsigned int	terrainShaderProgram;
 
 	// triangle data
-	unsigned int	m_maxTris;
-	unsigned int	m_triCount;
-	GizmoTri*		m_tris;
-
-	unsigned int	m_triVAO;
-	unsigned int 	m_triVBO;
-	
-	unsigned int	m_transparentTriCount;
-	GizmoTri*		m_transparentTris;
-
-	unsigned int	m_transparentTriVAO;
-	unsigned int 	m_transparentTriVBO;
+	unsigned int	maxTerrainTris;
+	unsigned int	terrainTriCount;
+	GizmoTri*		terrainTris;
+	unsigned int	terrainVAO;
+	unsigned int 	terrainVBO;
 	
 	//singleton
 	static GeometryTerrain*	sm_singleton;
