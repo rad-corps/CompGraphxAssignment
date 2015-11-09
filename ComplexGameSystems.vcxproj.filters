@@ -30,13 +30,7 @@
     <ClInclude Include="src\AppTerrain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\AppTexture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\GeometryTerrain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GeometryTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\gl_core_4_4.h">
@@ -62,13 +56,7 @@
     <ClCompile Include="src\AppTerrain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\AppTexture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\GeometryTerrain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GeometryTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\gl_core_4_4.c">
@@ -76,8 +64,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ShaderFragTexture.glsl" />
-    <None Include="ShaderVertTexture.glsl" />
     <None Include="ShaderVertTerrain.glsl" />
     <None Include="ShaderFragTerrain.glsl" />
   </ItemGroup>

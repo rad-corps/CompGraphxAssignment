@@ -2,6 +2,7 @@
 
 in vec2 vTexCoord; 
 in vec4 vColour; 
+in vec4 vNormal;
 
 out vec4 FragColor; 
 

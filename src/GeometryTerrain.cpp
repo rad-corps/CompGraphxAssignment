@@ -23,7 +23,8 @@ GeometryTerrain::GeometryTerrain(unsigned int a_maxLines, unsigned int a_maxTris
 	m_triCount(0),
 	m_tris(new GizmoTri[a_maxTris]),
 	m_transparentTriCount(0),
-	m_transparentTris(new GizmoTri[a_maxTris])
+	m_transparentTris(new GizmoTri[a_maxTris]),
+	lightPosition(glm::vec4(0,3,0,1))
 	{
 	
 	//preallocate vector memory
@@ -36,7 +37,8 @@ GeometryTerrain::GeometryTerrain(unsigned int a_maxLines, unsigned int a_maxTris
 	}
 
 	std::string vsSource = FileIO::read_file("ShaderVertTerrain.glsl");
-	std::string fsSource = FileIO::read_file("ShaderFragTerrain.glsl");	const char * vsSourceCstr = vsSource.c_str();
+	std::string fsSource = FileIO::read_file("ShaderFragTerrain.glsl");
+	const char * vsSourceCstr = vsSource.c_str();
 	const char * fsSourceCstr = fsSource.c_str();
     
     //Create the Vertex and Fragment Shaders
@@ -108,9 +110,11 @@ GeometryTerrain::GeometryTerrain(unsigned int a_maxLines, unsigned int a_maxTris
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(GizmoVertex), 0);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(GizmoVertex), ((char*)0) + 16);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GizmoVertex), ((char*)0) + 32);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(GizmoVertex), ((char*)0) + 40);
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -119,12 +123,16 @@ GeometryTerrain::GeometryTerrain(unsigned int a_maxLines, unsigned int a_maxTris
 	//Load a texture
 	glEnable(GL_TEXTURE_2D);
 	int imageWidth = 0, imageHeight = 0, imageFormat = 0;
-	unsigned char* data = stbi_load("./data/textures/grass.jpg", &imageWidth, &imageHeight, &imageFormat, STBI_rgb);	grassTexture = 0;	glGenTextures(1, &grassTexture);
+	unsigned char* data = stbi_load("./data/textures/grass.jpg", &imageWidth, &imageHeight, &imageFormat, STBI_rgb);
+	grassTexture = 0;
+	glGenTextures(1, &grassTexture);
 	glBindTexture(GL_TEXTURE_2D, grassTexture);
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	glTexImage2D(GL_TEXTURE_2D, 0, imageFormat, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	stbi_image_free(data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	stbi_image_free(data);
 
 
 	glUseProgram(m_shader);
@@ -184,6 +192,24 @@ void GeometryTerrain::addTerrain(const int& size_, const float& octaves_, const 
 	}
 }
 
+glm::vec4 GeometryTerrain::calculateSurfaceNormal(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3)
+{
+	glm::vec3 v = p2 - p1;
+	glm::vec3 w = p3 - p1;
+	glm::vec4 n;
+	n.x = (v.y * w.z) - (v.z * w.y);
+	n.y = (v.z * w.x) - (v.x * w.z);
+	n.z = (v.x * w.y) - (v.y * w.x);
+	n.w = 1;
+
+	////may need to normalise n? 
+	float length = sqrt(n.x * n.x + n.y * n.y + n.z * n.z);
+	n.x = n.x / length;
+	n.y = n.y / length;
+	n.z = n.z / length;
+	return n;
+}
+
 void GeometryTerrain::addTri(const glm::vec3& a_rv0, const glm::vec3& a_rv1, const glm::vec3& a_rv2, const glm::vec4& a_colour, const int& triNum_) 
 {
 	if (sm_singleton != nullptr)
@@ -239,53 +265,52 @@ void GeometryTerrain::addTri(const glm::vec3& a_rv0, const glm::vec3& a_rv1, con
 					sm_singleton->m_tris[sm_singleton->m_triCount].v2.t = 0;
 				}
 
+				//add surface normals
+				glm::vec4 n = calculateSurfaceNormal(a_rv0, a_rv1, a_rv2);
+				sm_singleton->m_tris[sm_singleton->m_triCount].v0.nx = n.x;
+				sm_singleton->m_tris[sm_singleton->m_triCount].v0.ny = n.y;
+				sm_singleton->m_tris[sm_singleton->m_triCount].v0.nz = n.z;
+				sm_singleton->m_tris[sm_singleton->m_triCount].v0.nw = 1;
+				sm_singleton->m_tris[sm_singleton->m_triCount].v1.nx = n.x;
+				sm_singleton->m_tris[sm_singleton->m_triCount].v1.ny = n.y;
+				sm_singleton->m_tris[sm_singleton->m_triCount].v1.nz = n.z;
+				sm_singleton->m_tris[sm_singleton->m_triCount].v1.nw = 1;
+				sm_singleton->m_tris[sm_singleton->m_triCount].v2.nx = n.x;
+				sm_singleton->m_tris[sm_singleton->m_triCount].v2.ny = n.y;
+				sm_singleton->m_tris[sm_singleton->m_triCount].v2.nz = n.z;
+				sm_singleton->m_tris[sm_singleton->m_triCount].v2.nw = 1;
+
 				sm_singleton->m_triCount++;
 			}
 		}
 	}
 }
 
-	void GeometryTerrain::addTextureSquare()
+void GeometryTerrain::addTextureSquare()
 {
 
 
 }
 
-//void GeometryTerrain::draw(const glm::mat4& a_projectionView) 
-//{
-//	if ( sm_singleton != nullptr && ( sm_singleton->m_triCount > 0 || sm_singleton->m_transparentTriCount > 0))
-//	{
-//		//send through the projection view matrix
-//		unsigned int loc = glGetUniformLocation(sm_singleton->m_shader,"ProjectionView");
-//		glUniformMatrix4fv(loc, 1, false, glm::value_ptr(a_projectionView));
-//
-//		//set the active texture
-//		glActiveTexture(GL_TEXTURE0);
-//		glBindTexture(GL_TEXTURE_2D, grassTexture);//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//
-//		if (sm_singleton->m_triCount > 0)
-//		{
-//			glBindBuffer(GL_ARRAY_BUFFER, sm_singleton->m_triVBO);
-//			glBufferSubData(GL_ARRAY_BUFFER, 0, sm_singleton->m_triCount * sizeof(GizmoTri), sm_singleton->m_tris);
-//
-//			//by binding this vertex array object, we dont have to set our vertex attrib pointers each time
-//			glBindVertexArray(sm_singleton->m_triVAO);			
-//			glDrawArrays(GL_TRIANGLES, 0, sm_singleton->m_triCount * 3);
-//		}
-//	}
-//}
-
 void GeometryTerrain::draw(const glm::mat4& a_projectionView)
 {
 	if (sm_singleton != nullptr && (sm_singleton->m_triCount > 0 || sm_singleton->m_transparentTriCount > 0))
 	{
+		//used to temporarily store the uniform locations of the vertex shader
+		unsigned int loc = 0;
+		
 		//send through the projection view matrix
-		unsigned int loc = glGetUniformLocation(sm_singleton->m_shader, "ProjectionView");
+		loc = glGetUniformLocation(sm_singleton->m_shader, "ProjectionView");
 		glUniformMatrix4fv(loc, 1, false, glm::value_ptr(a_projectionView));
+
+		//send through the light position
+		loc = glGetUniformLocation(sm_singleton->m_shader, "lightPosition");
+		glUniform4fv(loc, 1, &sm_singleton->lightPosition[0]);
 
 		//set the active texture
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, grassTexture);		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glBindTexture(GL_TEXTURE_2D, grassTexture);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		if (sm_singleton->m_triCount > 0)
 		{

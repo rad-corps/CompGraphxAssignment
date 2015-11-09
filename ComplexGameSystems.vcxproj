@@ -82,23 +82,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\AppTexture.h" />
     <ClInclude Include="src\BaseApplication.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\FileIO.hpp" />
     <ClInclude Include="src\GeometryTerrain.h" />
-    <ClInclude Include="src\GeometryTexture.h" />
     <ClInclude Include="src\AppTerrain.h" />
     <ClInclude Include="src\gl_core_4_4.h" />
     <ClInclude Include="src\simplexnoise.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\AppTexture.cpp" />
     <ClCompile Include="src\BaseApplication.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\FileIO.cpp" />
     <ClCompile Include="src\GeometryTerrain.cpp" />
-    <ClCompile Include="src\GeometryTexture.cpp" />
     <ClCompile Include="src\gl_core_4_4.c" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\AppTerrain.cpp" />
@@ -106,8 +102,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ShaderFragTerrain.glsl" />
-    <None Include="ShaderFragTexture.glsl" />
-    <None Include="ShaderVertTexture.glsl" />
     <None Include="ShaderVertTerrain.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/fwd.hpp>
+#include <glm/vec4.hpp>
 #include <vector>
 
 class GeometryTerrain {
@@ -19,6 +20,8 @@ public:
 	// Adds a triangle.
 	static void		addTri(const glm::vec3& a_rv0, const glm::vec3& a_rv1, const glm::vec3& a_rv2, const glm::vec4& a_colour, const int& triNum_);
 
+	static glm::vec4 calculateSurfaceNormal(const glm::vec3& a_rv0, const glm::vec3& a_rv1, const glm::vec3& a_rv2);
+
 	//Adds a rectangular prism
 	static void		addRectangularPrism(const glm::vec3& startingPoint, const float& w_, const float& h_, const float& d_);
 
@@ -36,6 +39,7 @@ private:
 		float x, y, z, w;
 		float r, g, b, a;
 		float s, t; //UV coords
+		float nx, ny, nz, nw; //surface normal
 	};
 
 	struct GizmoLine {
@@ -73,4 +77,6 @@ private:
 	static std::vector<std::vector<glm::vec4>> colours;
 	
 	static unsigned int grassTexture;
+
+	glm::vec4 lightPosition;
 };
