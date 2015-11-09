@@ -83,7 +83,10 @@ bool AppTerrain::startup() {
 	topRed = 91;
 	topGreen = 135;
 	topBlue = 10;
-	guiBar = TwNewBar("Control");	TwAddVarRW(guiBar, "size", TW_TYPE_INT32, &terrainSize, " min=0 max=200 label='Terrain Size'");	TwAddVarRW(guiBar, "octave", TW_TYPE_FLOAT, &octaves, " min=0 max=10 label='Perlin Octaves'");	TwAddVarRW(guiBar, "scale", TW_TYPE_FLOAT, &scale2, " min=0.001 max=1.0 label='Scale'");	TwAddVarRW(guiBar, "persistance", TW_TYPE_FLOAT, &persistance, " min=0.0 max=1.0 label='Persistance'");	TwAddVarRW(guiBar, "height", TW_TYPE_FLOAT, &height, " min=0.0 max=10 label='Height'");	TwAddVarRW(guiBar, "bottomRed", TW_TYPE_INT32, &bottomRed, " min=0 max=255 label='Bottom Red'");	TwAddVarRW(guiBar, "bottomGreen", TW_TYPE_INT32, &bottomGreen, " min=0 max=255 label='Bottom Green'");	TwAddVarRW(guiBar, "bottomBlue", TW_TYPE_INT32, &bottomBlue, " min=0 max=255 label='Bottom Blue'");	TwAddVarRW(guiBar, "topRed", TW_TYPE_INT32, &topRed, " min=0 max=255 label='Top Red'");	TwAddVarRW(guiBar, "topGreen", TW_TYPE_INT32, &topGreen, " min=0 max=255 label='Top Green'");	TwAddVarRW(guiBar, "topBlue", TW_TYPE_INT32, &topBlue, " min=0 max=255 label='Top Blue'");	glfwSetMouseButtonCallback(m_window, OnMouseButton);
+	lightX = 0;
+	lightY = 3;
+	lightZ = 0;
+	guiBar = TwNewBar("Control");	TwAddVarRW(guiBar, "size", TW_TYPE_INT32, &terrainSize, " min=0 max=200 label='Terrain Size'");	TwAddVarRW(guiBar, "octave", TW_TYPE_FLOAT, &octaves, " min=0 max=10 label='Perlin Octaves'");	TwAddVarRW(guiBar, "scale", TW_TYPE_FLOAT, &scale2, " min=0.001 max=1.0 label='Scale'");	TwAddVarRW(guiBar, "persistance", TW_TYPE_FLOAT, &persistance, " min=0.0 max=1.0 label='Persistance'");	TwAddVarRW(guiBar, "height", TW_TYPE_FLOAT, &height, " min=0.0 max=10 label='Height'");	TwAddVarRW(guiBar, "bottomRed", TW_TYPE_INT32, &bottomRed, " min=0 max=255 label='Bottom Red'");	TwAddVarRW(guiBar, "bottomGreen", TW_TYPE_INT32, &bottomGreen, " min=0 max=255 label='Bottom Green'");	TwAddVarRW(guiBar, "bottomBlue", TW_TYPE_INT32, &bottomBlue, " min=0 max=255 label='Bottom Blue'");	TwAddVarRW(guiBar, "topRed", TW_TYPE_INT32, &topRed, " min=0 max=255 label='Top Red'");	TwAddVarRW(guiBar, "topGreen", TW_TYPE_INT32, &topGreen, " min=0 max=255 label='Top Green'");	TwAddVarRW(guiBar, "topBlue", TW_TYPE_INT32, &topBlue, " min=0 max=255 label='Top Blue'");	TwAddVarRW(guiBar, "lightX", TW_TYPE_FLOAT, &lightX, " label='Light X'");	TwAddVarRW(guiBar, "lightY", TW_TYPE_FLOAT, &lightY, " label='Light Y'");	TwAddVarRW(guiBar, "lightZ", TW_TYPE_FLOAT, &lightZ, " label='Light Z'");	glfwSetMouseButtonCallback(m_window, OnMouseButton);
 	glfwSetCursorPosCallback(m_window, OnMousePosition);
 	glfwSetScrollCallback(m_window, OnMouseScroll);
 	glfwSetKeyCallback(m_window, OnKey);
@@ -132,6 +135,7 @@ bool AppTerrain::update(float deltaTime) {
 	RGBFloats[5] = (float)topBlue / 255.f;
 
 	GeometryTerrain::addTerrain(terrainSize, octaves, height, RGBFloats, scale2, persistance);
+	GeometryTerrain::addLight(glm::vec3(lightX, lightY, lightZ));
 
 	// return true, else the application closes
 	return true;

@@ -66,5 +66,7 @@
   <ItemGroup>
     <None Include="ShaderVertTerrain.glsl" />
     <None Include="ShaderFragTerrain.glsl" />
+    <None Include="SimpleVertShader.glsl" />
+    <None Include="SimpleFragShader.glsl" />
   </ItemGroup>
 </Project>

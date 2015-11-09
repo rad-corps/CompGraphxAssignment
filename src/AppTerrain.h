@@ -45,4 +45,8 @@ private:
 
 	float persistance;
 	float scale2;
+
+	float lightX;
+	float lightY;
+	float lightZ;
 };

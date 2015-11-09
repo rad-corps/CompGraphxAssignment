@@ -103,6 +103,8 @@
   <ItemGroup>
     <None Include="ShaderFragTerrain.glsl" />
     <None Include="ShaderVertTerrain.glsl" />
+    <None Include="SimpleFragShader.glsl" />
+    <None Include="SimpleVertShader.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
